@@ -19,7 +19,7 @@ class AppointmentServiceProvider extends PackageServiceProvider
             ->name('laravel-appointments')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_laravel-appointments_table')
+            ->hasMigration('create_appointments_table')
             ->hasCommand(AppointmentCommand::class);
     }
 }
