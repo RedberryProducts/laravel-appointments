@@ -1,84 +1,122 @@
-# This is my package laravel-appointments
+# laravel-appointments
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/redberryproducts/laravel-appointments.svg?style=flat-square)](https://packagist.org/packages/redberryproducts/laravel-appointments)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/redberryproducts/laravel-appointments/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/redberryproducts/laravel-appointments/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/redberryproducts/laravel-appointments/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/redberryproducts/laravel-appointments/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/redberryproducts/laravel-appointments.svg?style=flat-square)](https://packagist.org/packages/redberryproducts/laravel-appointments)
+### **Overview**
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+This document is a comprehensive guide for the **`laravel-appointments`** Laravel package, designed for scheduling, managing, and tracking appointments.
 
-## Support us
+### **Setup and Installation**
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-appointments.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-appointments)
+- **Installation**:
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
+    ```bash
+    composer require redberry/laravel-appointments
+    ```
 
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+- **Publish Configuration** (if applicable):
 
-## Installation
+    ```bash
+    php artisan vendor:publish --tag="laravel-appointments-config"
+    ```
 
-You can install the package via composer:
+- **Database Migration**:
 
-```bash
-composer require redberryproducts/laravel-appointments
-```
+    ```bash
+    php artisan migrate
+    ```
 
-You can publish and run the migrations with:
 
-```bash
-php artisan vendor:publish --tag="laravel-appointments-migrations"
-php artisan migrate
-```
+### **Core Functionalities**
 
-You can publish the config file with:
+### Using the Appointment Facade
 
-```bash
-php artisan vendor:publish --tag="laravel-appointments-config"
-```
+1. **Schedule an Appointment**
+    - Schedule an appointment for a user at a specified timestamp.
 
-This is the contents of the published config file:
+    ```php
+    use Redberry\Appointments\Facades\Appointment;
+    
+    Appointment::with($doctor)->for($user)->schedule(at: $timestamp);
+    ```
+
+2. **Reschedule an Appointment**
+    - Change the time of an existing appointment.
+
+    ```php
+    Appointment::for($user)->reschedule(at: $timestamp);
+    ```
+
+3. **Cancel an Appointment**
+    - Cancel a scheduled appointment.
+
+    ```php
+    Appointment::for($user)->cancel();
+    ```
+
+4. **Retrieve Available Dates**
+    - Get dates with available appointment slots.
+
+    ```php
+    $availableDates = Appointment::availableDates();
+    ```
+
+5. **Retrieve Booked Dates**
+    - Get dates with no available appointment slots.
+
+    ```php
+    $bookedDates = Appointment::bookedDates();
+    ```
+
+6. **Available Time Slots for a Date**
+    - Get available time slots for a specific date.
+
+    ```php
+    $availableTimeSlots = Appointment::date($date)->availableTimeslots();
+    ```
+
+7. **Booked Time Slots for a Date**
+    - Get booked time slots for a specific date.
+
+    ```php
+    $bookedTimeSlots = Appointment::date($date)->bookedTimeslots();
+    ```
+
+
+### **Events**
+
+### Available Events
+
+The package fires several events related to appointment activities:
+
+1. **AppointmentScheduled**
+2. **AppointmentReschedule**
+3. **AppointmentCanceled**
+
+### Registering Event Listeners
+
+Developers can listen to these events in their application's **`EventServiceProvider`**:
 
 ```php
-return [
+protected $listen = [
+    \Redberry\Appointments\Events\AppointmentScheduled::class => [
+        \App\Listeners\HandleAppointmentScheduled::class,
+    ],
+    \Redberry\Appointments\Events\AppointmentRescheduled::class => [
+        \App\Listeners\HandleAppointmentRescheduled::class,
+    ],
+    \Redberry\Appointments\Events\AppointmentCanceled::class => [
+        \App\Listeners\HandleAppointmentCanceled::class,
+    ],
 ];
 ```
 
-Optionally, you can publish the views using
+### **Testing**
 
-```bash
-php artisan vendor:publish --tag="laravel-appointments-views"
-```
+- Pest
 
-## Usage
+### **Development and Contributions**
 
-```php
-$appointment = new RedberryProducts\Appointment();
-echo $appointment->echoPhrase('Hello, RedberryProducts!');
-```
+- Instructions for contributing to the package, including coding standards and pull request processes.
 
-## Testing
+### **Future Plans and Feedback**
 
-```bash
-composer test
-```
-
-## Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [redberry](https://github.com/RedberryProducts)
-- [All Contributors](../../contributors)
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+- Outline of planned features and enhancements, and an invitation for community feedback and suggestions.

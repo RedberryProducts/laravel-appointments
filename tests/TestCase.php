@@ -2,11 +2,12 @@
 
 namespace RedberryProducts\Appointment\Tests;
 
+use AllowDynamicProperties;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RedberryProducts\Appointment\AppointmentServiceProvider;
 
-class TestCase extends Orchestra
+#[AllowDynamicProperties] class TestCase extends Orchestra
 {
     protected function setUp(): void
     {
@@ -28,9 +29,9 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_laravel-appointments_table.php.stub';
+        $migration = include __DIR__.'/../database/migrations/create_appointments_table.php.stub';
+        $userMigration = include __DIR__.'/../database/migrations/create_users_table.php.stub';
+        $userMigration->up();
         $migration->up();
-        */
     }
 }

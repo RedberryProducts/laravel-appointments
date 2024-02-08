@@ -8,11 +8,19 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('laravel_appointments_table', function (Blueprint $table) {
+        Schema::create('appointments', function (Blueprint $table) {
             $table->id();
+            $table->string('appointable_type')->nullable()->index();
+            $table->unsignedBigInteger('appointable_id')->nullable()->index();
 
-            // add fields
+            $table->string('scheduleable_type')->index();
+            $table->unsignedBigInteger('scheduleable_id')->index();
 
+            $table->string('title')->nullable();
+            $table->timestamp('starts_at')->nullable();
+            $table->timestamp('ends_at')->nullable();
+            $table->string('status')->index();
+            $table->string('type')->index()->default('default');
             $table->timestamps();
         });
     }
