@@ -20,6 +20,7 @@ class AppointmentServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_appointments_table')
+            ->hasMigration('create_appointable_time_settings_table')
             ->hasCommand(AppointmentCommand::class);
     }
 }

@@ -30,8 +30,10 @@ use RedberryProducts\Appointment\AppointmentServiceProvider;
         config()->set('database.default', 'testing');
 
         $migration = include __DIR__.'/../database/migrations/create_appointments_table.php.stub';
+        $appointableTimeSettings = include __DIR__.'/../database/migrations/create_appointable_time_setting_table.php.stub';
         $userMigration = include __DIR__.'/../database/migrations/create_users_table.php.stub';
         $userMigration->up();
         $migration->up();
+        $appointableTimeSettings->up();
     }
 }

@@ -31,11 +31,11 @@ it('can schedule an appointment using model traits', function () {
         title: $appointmentTitle // optional
     );
 
-    expect($appointment)->toBeInstanceOf(\RedberryProducts\Appointment\Models\Appointment::class)
-        ->and($appointment->appointable->type)->toBe('doctor')
-        ->and($appointment->scheduleable->type)->toBe('patient')
-        ->and($appointment->starts_at)->toBe($appointmentAt)
-        ->and($appointment->title)->toBe($appointmentTitle);
+    expect($appointment->dbRecord)->toBeInstanceOf(\RedberryProducts\Appointment\Models\Appointment::class)
+        ->and($appointment->dbRecord->appointable->type)->toBe('doctor')
+        ->and($appointment->dbRecord->scheduleable->type)->toBe('patient')
+        ->and($appointment->dbRecord->starts_at)->toBe($appointmentAt)
+        ->and($appointment->dbRecord->title)->toBe($appointmentTitle);
 });
 
 it('can schedule a meeting using facade', function () {
