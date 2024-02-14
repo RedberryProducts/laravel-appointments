@@ -5,7 +5,6 @@ namespace RedberryProducts\Appointment\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-
 /**
  * @property array $opening_hours;
  */
