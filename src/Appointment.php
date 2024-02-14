@@ -40,6 +40,17 @@ class Appointment
         return $this;
     }
 
+    public function setOpeningHours(array $openingHours): Models\AppointableTimeSetting
+    {
+        $appointableTimeSetting = new Models\AppointableTimeSetting([
+            'opening_hours' => $openingHours,
+        ]);
+        $appointableTimeSetting->appointable()->associate($this->appointable);
+        $appointableTimeSetting->save();
+
+        return $appointableTimeSetting;
+    }
+
     private function save(): Models\Appointment
     {
         $appointment = new Models\Appointment([
