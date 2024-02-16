@@ -14,25 +14,27 @@ beforeEach(function () {
 describe('Test package functionalities using facade', function () {
 
     it('can schedule a appointment', function () {
+        $at = Carbon::now()->addHour();
         $appointment = \RedberryProducts\Appointment\Facades\Appointment::with($this->doctor)
             ->for($this->patient)
-            ->schedule(Carbon::now()->addHour(), 'Consultation with Dr. John Doe');
+            ->schedule($at, 'Consultation with Dr. John Doe');
 
         expect($appointment)->toBeInstanceOf(\RedberryProducts\Appointment\Appointment::class)
             ->and($appointment->appointable->type)->toBe('doctor')
             ->and($appointment->scheduleable->type)->toBe('patient')
-            ->and($appointment->at->toString())->toBe(Carbon::now()->addHour()->toString())
+            ->and($appointment->at->toString())->toBe($at->toString())
             ->and($appointment->title)->toBe('Consultation with Dr. John Doe');
     });
 
     it('can schedule an appointment without appointable', function () {
+        $at = Carbon::now()->addHour();
         $appointment = \RedberryProducts\Appointment\Facades\Appointment::for($this->patient)
-            ->schedule(Carbon::now()->addHour(), 'Appointment without appointable');
+            ->schedule($at, 'Appointment without appointable');
 
         expect($appointment)->toBeInstanceOf(\RedberryProducts\Appointment\Appointment::class)
             ->and($appointment->scheduleable->type)->toBe('patient')
             ->and($appointment->appointable)->toBeNull()
-            ->and($appointment->at->toString())->toBe(Carbon::now()->addHour()->toString())
+            ->and($appointment->at->toString())->toBe($at->toString())
             ->and($appointment->title)->toBe('Appointment without appointable');
     });
 
