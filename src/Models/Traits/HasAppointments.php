@@ -21,13 +21,13 @@ trait HasAppointments
         return $this->morphOne(AppointableTimeSetting::class, 'appointable');
     }
 
-    public function setOpeningHours(array $openingHours): void
+    public function setWorkingHours(array $openingHours): void
     {
-        AppointmentFacade::with($this)->setOpeningHours($openingHours);
+        AppointmentFacade::with($this)->setWorkingHours($openingHours);
     }
 
-    public function openingHours(): OpeningHours
+    public function workingHours(): ?OpeningHours
     {
-        return OpeningHours::create($this->timeSetting->opening_hours);
+        return AppointmentFacade::with($this)->workingHours();
     }
 }
