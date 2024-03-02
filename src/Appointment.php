@@ -138,14 +138,9 @@ class Appointment
         return $this->databaseRecord;
     }
 
-    public function get(): Models\Appointment
-    {
-        return $this->databaseRecord;
-    }
-
     public function appointable(): mixed
     {
-        return $this->databaseRecord->appointable;
+        return $this->databaseRecord()->appointable;
     }
 
     public function scheduleable(): mixed
@@ -160,27 +155,27 @@ class Appointment
 
     public function endsAt(): \DateTime
     {
-        return $this->databaseRecord->ends_at->toDateTime();
+        return $this->databaseRecord()->ends_at->toDateTime();
     }
 
     public function title(): string
     {
-        return $this->databaseRecord->title;
+        return $this->databaseRecord()->title;
     }
 
     public function status(): string
     {
-        return $this->databaseRecord->status;
+        return $this->databaseRecord()->status;
     }
 
     public function type(): string
     {
-        return $this->databaseRecord->type;
+        return $this->databaseRecord()->type;
     }
 
     public function id(): int
     {
-        return $this->databaseRecord->id;
+        return $this->databaseRecord()->id;
     }
 
     public function findSchedule(int $id): static
