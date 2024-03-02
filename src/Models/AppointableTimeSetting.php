@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property array $opening_hours;
  *
  * @method whereNull(string $string)
+ * @method static general()
  */
 class AppointableTimeSetting extends Model
 {

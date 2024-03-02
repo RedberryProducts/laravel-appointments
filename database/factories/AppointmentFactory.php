@@ -18,7 +18,7 @@ class AppointmentFactory extends Factory
             'title' => $this->faker->sentence,
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
-            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']), // Assuming these are your possible statuses
+            'status' => $this->faker->randomElement(['pending', 'confirmed', 'canceled']), // Assuming these are your possible statuses
             'type' => $this->faker->randomElement(['default', 'urgent', 'follow-up']), // Assuming you have different types of appointments
         ];
 

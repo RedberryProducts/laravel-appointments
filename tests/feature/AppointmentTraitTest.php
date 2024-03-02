@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Carbon;
 use RedberryProducts\Appointment\Models\AppointableTimeSetting;
-use RedberryProducts\Appointment\Models\User;
+use RedberryProducts\Appointment\Tests\Models\User;
 use Spatie\OpeningHours\OpeningHours;
 use Spatie\OpeningHours\OpeningHoursForDay;
 
@@ -29,18 +29,21 @@ describe('Test package functionalities using model traits', function () {
     it('can schedule an appointment using model traits', function () {
 
         $appointmentTitle = 'Consultation with Dr. John Doe';
-        $appointmentAt = Carbon::make('2024-04-08 12:00:00');
+        $appointmentAt = Carbon::make('2024-04-08 12:00:00')->toDateTime();
+        /** @var \RedberryProducts\Appointment\Appointment $appointment */
         $appointment = $this->patient->scheduleAppointment(
             with: $this->doctor,
             at: $appointmentAt,
             title: $appointmentTitle // optional
         );
 
-        expect($appointment->dbRecord)->toBeInstanceOf(\RedberryProducts\Appointment\Models\Appointment::class)
-            ->and($appointment->dbRecord->appointable->type)->toBe('doctor')
-            ->and($appointment->dbRecord->scheduleable->type)->toBe('patient')
-            ->and($appointment->dbRecord->starts_at)->toBe($appointmentAt)
-            ->and($appointment->dbRecord->title)->toBe($appointmentTitle);
+        //        dd($appointment->startsAt(), $appointmentAt);
+        //        dd($appointment->databaseRecord()->starts_at, $appointmentAt);
+        expect($appointment->databaseRecord())->toBeInstanceOf(\RedberryProducts\Appointment\Models\Appointment::class)
+            ->and($appointment->appointable()->type)->toBe('doctor')
+            ->and($appointment->scheduleable()->type)->toBe('patient')
+            ->and($appointment->startsAt()->getTimestamp())->toBe($appointmentAt->getTimestamp())
+            ->and($appointment->title())->toBe($appointmentTitle);
     });
 
     it('can set opening hour of appointables via trait', function () {
@@ -76,5 +79,67 @@ describe('Test package functionalities using model traits', function () {
 
         expect($this->doctor->workingHours())->toBeInstanceOf(OpeningHours::class)
             ->and($this->doctor->workingHours()->forDay('monday'))->toBeInstanceOf(OpeningHoursForDay::class);
+    });
+
+    it('can find and cancel an appointment using trait', function () {
+        $appointment = $this->patient->scheduleAppointment(
+            with: $this->doctor,
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
+            title: 'Consultation with Dr. John Doe'
+        );
+        $appointment = $this->patient->findSchedule($appointment->databaseRecord()->id)->cancel();
+
+        expect($appointment->status())
+            ->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
+    });
+
+    it('can complete an appointment using trait', function () {
+        $appointment = $this->patient->scheduleAppointment(
+            with: $this->doctor,
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
+            title: 'Consultation with Dr. John Doe'
+        );
+
+        $appointment->complete();
+
+        expect($appointment->databaseRecord()->updated_at)->toBeInstanceOf(Carbon::class)
+            ->and($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
+    });
+
+    it('can reschedule an appointment using trait', function () {
+        $appointment = $this->patient->scheduleAppointment(
+            with: $this->doctor,
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
+            title: 'Consultation with Dr. John Doe'
+        );
+
+        $appointment->reschedule(Carbon::make('2024-04-08 14:00:00')->toDateTime());
+
+        expect($appointment->startsAt()->getTimestamp())->toBe(Carbon::make('2024-04-08 14:00:00')->toDateTime()->getTimestamp());
+    });
+
+    it('can create, find and cancel an appointment using trait', function () {
+        $appointment = $this->patient->scheduleAppointment(
+            with: $this->doctor,
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
+            title: 'Consultation with Dr. John Doe'
+        );
+        $appointment = $this->patient->findSchedule($appointment->databaseRecord()->id)->cancel();
+
+        expect($appointment->status())
+            ->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
+    });
+
+    it('can create, find and reschedule an appointment using trait', function () {
+        $appointment = $this->patient->scheduleAppointment(
+            with: $this->doctor,
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
+            title: 'Consultation with Dr. John Doe'
+        );
+        $appointment = $this->patient->findSchedule($appointment->databaseRecord()->id)->reschedule(Carbon::make('2024-04-08 14:00:00')->toDateTime());
+
+        expect($appointment->startsAt()->getTimestamp())->toBe(Carbon::make('2024-04-08 14:00:00')->toDateTime()->getTimestamp());
     });
 });
