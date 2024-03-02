@@ -85,7 +85,7 @@ class Appointment
     {
         $appointment = new Models\Appointment([
             'starts_at' => $this->at,
-            'status' => Status::PENDING->value,
+            'status' => $this->status->value,
             'title' => $this->title,
         ]);
         $appointment->appointable()->associate($this->appointable);
