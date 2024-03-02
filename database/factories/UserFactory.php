@@ -3,7 +3,7 @@
 namespace RedberryProducts\Appointment\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use RedberryProducts\Appointment\Models\User;
+use RedberryProducts\Appointment\Tests\Models\User;
 
 class UserFactory extends Factory
 {

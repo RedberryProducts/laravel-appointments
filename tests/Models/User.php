@@ -1,9 +1,10 @@
 <?php
 
-namespace RedberryProducts\Appointment\Models;
+namespace RedberryProducts\Appointment\Tests\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use RedberryProducts\Appointment\Models\Traits;
 
 /**
  * @property mixed $timeSetting

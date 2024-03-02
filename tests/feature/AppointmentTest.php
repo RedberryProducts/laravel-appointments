@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Carbon;
 use RedberryProducts\Appointment\Facades\Appointment;
-use RedberryProducts\Appointment\Models\User;
+use RedberryProducts\Appointment\Tests\Models\User;
 use Spatie\OpeningHours\OpeningHours;
 use Spatie\OpeningHours\OpeningHoursForDay;
 
@@ -14,28 +14,28 @@ beforeEach(function () {
 describe('Test package functionalities using facade', function () {
 
     it('can schedule a appointment', function () {
-        $at = Carbon::now()->addHour();
+        $at = Carbon::now()->addHour()->toDateTime();
         $appointment = \RedberryProducts\Appointment\Facades\Appointment::with($this->doctor)
             ->for($this->patient)
             ->schedule($at, 'Consultation with Dr. John Doe');
 
         expect($appointment)->toBeInstanceOf(\RedberryProducts\Appointment\Appointment::class)
-            ->and($appointment->appointable->type)->toBe('doctor')
-            ->and($appointment->scheduleable->type)->toBe('patient')
-            ->and($appointment->at->toString())->toBe($at->toString())
-            ->and($appointment->title)->toBe('Consultation with Dr. John Doe');
+            ->and($appointment->appointable()->type)->toBe('doctor')
+            ->and($appointment->scheduleable()->type)->toBe('patient')
+            ->and($appointment->startsAt()->getTimestamp())->toBe($at->getTimestamp())
+            ->and($appointment->title())->toBe('Consultation with Dr. John Doe');
     });
 
     it('can schedule an appointment without appointable', function () {
-        $at = Carbon::now()->addHour();
+        $at = Carbon::now()->addHour()->toDateTime();
         $appointment = \RedberryProducts\Appointment\Facades\Appointment::for($this->patient)
             ->schedule($at, 'Appointment without appointable');
 
         expect($appointment)->toBeInstanceOf(\RedberryProducts\Appointment\Appointment::class)
-            ->and($appointment->scheduleable->type)->toBe('patient')
-            ->and($appointment->appointable)->toBeNull()
-            ->and($appointment->at->toString())->toBe($at->toString())
-            ->and($appointment->title)->toBe('Appointment without appointable');
+            ->and($appointment->scheduleable()->type)->toBe('patient')
+            ->and($appointment->appointable())->toBeNull()
+            ->and($appointment->startsAt()->getTimestamp())->toBe($at->getTimestamp())
+            ->and($appointment->title())->toBe('Appointment without appointable');
     });
 
     it('can set opening hours', function () {
@@ -68,14 +68,14 @@ describe('Test package functionalities using facade', function () {
             'exceptions' => [],
         ]);
 
-        expect($appointment->workingHours)->toBeInstanceOf(OpeningHours::class);
+        expect($appointment->workingHours())->toBeInstanceOf(OpeningHours::class);
     });
 
     it('can use working hour timeslots', function () {
         $appointment = Appointment::with($this->doctor)->setWorkingHours([
             'monday' => ['11:00-12:00', '12:00-13:00', '13:00-14:00', '16:00-17:00'],
         ]);
-        $appointableOpeningHours = $appointment->workingHours;
+        $appointableOpeningHours = $appointment->workingHours();
 
         expect($appointableOpeningHours->isOpenAt(new DateTime('2024-04-08 12:00:00')))->toBeTrue()
             ->and($appointableOpeningHours->isOpenAt(new DateTime('2024-04-08 13:00:00')))->toBeTrue()
@@ -92,15 +92,15 @@ describe('Test package functionalities using facade', function () {
 
         $appointment = $this->patient->scheduleAppointment(
             with: $this->doctor,
-            at: Carbon::make('2024-04-08 12:00:00'),
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
             title: 'Consultation with Dr. John Doe'
         );
 
-        expect($appointment->dbRecord)->toBeInstanceOf(\RedberryProducts\Appointment\Models\Appointment::class)
-            ->and($appointment->dbRecord->appointable->type)->toBe('doctor')
-            ->and($appointment->dbRecord->scheduleable->type)->toBe('patient')
-            ->and($appointment->dbRecord->starts_at->toString())->toBe(Carbon::make('2024-04-08 12:00:00')->toString())
-            ->and($appointment->dbRecord->title)->toBe('Consultation with Dr. John Doe');
+        expect($appointment->databaseRecord())->toBeInstanceOf(\RedberryProducts\Appointment\Models\Appointment::class)
+            ->and($appointment->databaseRecord()->appointable->type)->toBe('doctor')
+            ->and($appointment->databaseRecord()->scheduleable->type)->toBe('patient')
+            ->and($appointment->databaseRecord()->starts_at->toString())->toBe(Carbon::make('2024-04-08 12:00:00')->toString())
+            ->and($appointment->databaseRecord()->title)->toBe('Consultation with Dr. John Doe');
     });
 
     it('can not schedule appointment on an invalid timeslot', function () {
@@ -110,8 +110,118 @@ describe('Test package functionalities using facade', function () {
 
         $this->patient->scheduleAppointment(
             with: $this->doctor,
-            at: Carbon::make('2024-04-08 15:00:00'),
+            at: Carbon::make('2024-04-08 15:00:00')->toDateTime(),
             title: 'Consultation with Dr. John Doe'
         );
     })->throws(\Exception::class, 'The appointable is not available at the given time');
+
+    it('can cancel an appointment', function () {
+        $appointment = $this->patient->scheduleAppointment(
+            with: $this->doctor,
+            at: Carbon::make('2024-04-08 12:00:00')->toDateTime(),
+            title: 'Consultation with Dr. John Doe'
+        );
+
+        $appointment->cancel();
+
+        expect($appointment->databaseRecord()->updated_at)->toBeInstanceOf(Carbon::class);
+    });
+
+    it('can find and cancel an appointment', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = $appointment->cancel();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
+    });
+
+    it('can complete an appointment', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = $appointment->complete();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
+    });
+
+    it('can create an appointment, then find it using facade and cancel it', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)->cancel();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
+    });
+
+    it('can create an appointment, then find it using facade and complete it', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)->complete();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
+    });
+
+    it('can not complete an appointment that is already canceled', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)->cancel();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
+
+        Appointment::findSchedule($appointment->databaseRecord()->id)->complete();
+    })->throws(\Exception::class, 'The appointment is already canceled');
+
+    it('can not cancel an appointment that is already completed', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)->complete();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
+
+        Appointment::findSchedule($appointment->databaseRecord()->id)->cancel();
+    })->throws(\Exception::class, 'The appointment is already completed');
+
+    it('can reschedule an appointment', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)
+            ->reschedule(Carbon::make('2024-04-08 13:00:00')->toDateTime());
+
+        expect($appointment->startsAt()->getTimestamp())->toBe(Carbon::make('2024-04-08 13:00:00')->getTimestamp());
+    });
+
+    it('can not rescchedule an appointment that is already completed', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)->complete();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
+
+        Appointment::findSchedule($appointment->databaseRecord()->id)->reschedule(Carbon::make('2024-04-08 13:00:00')->toDateTime());
+    })->throws(\Exception::class, 'The appointment is already completed');
+
+    it('can not reschedule an appointment that is already canceled', function () {
+        $appointment = Appointment::with($this->doctor)
+            ->for($this->patient)
+            ->schedule(Carbon::make('2024-04-08 12:00:00')->toDateTime(), 'Consultation with Dr. John Doe');
+        $appointment = Appointment::findSchedule($appointment->databaseRecord()->id)->cancel();
+
+        expect($appointment->status())->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value)
+            ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
+
+        Appointment::findSchedule($appointment->databaseRecord()->id)->reschedule(Carbon::make('2024-04-08 13:00:00')->toDateTime());
+    })->throws(\Exception::class, 'The appointment is already canceled');
 });
