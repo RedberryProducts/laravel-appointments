@@ -185,7 +185,7 @@ class Appointment
 
     public function findSchedule(int $id): static
     {
-        $this->databaseRecord = Models\Appointment::find($id);
+        $this->makeFromModel(Models\Appointment::find($id));
 
         return $this;
     }
