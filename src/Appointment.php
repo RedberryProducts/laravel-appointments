@@ -4,6 +4,10 @@ namespace RedberryProducts\Appointment;
 
 use Illuminate\Support\Carbon;
 use RedberryProducts\Appointment\Enums\Status;
+use RedberryProducts\Appointment\Events\AppointmentCanceled;
+use RedberryProducts\Appointment\Events\AppointmentCompleted;
+use RedberryProducts\Appointment\Events\AppointmentRescheduled;
+use RedberryProducts\Appointment\Events\AppointmentScheduled;
 use RedberryProducts\Appointment\Models\AppointableTimeSetting;
 use Spatie\OpeningHours\OpeningHours;
 
@@ -64,6 +68,7 @@ class Appointment
         $this->at = $at;
         $this->title = $title;
         $this->save();
+        AppointmentScheduled::dispatch($this);
 
         return $this;
     }
@@ -100,6 +105,7 @@ class Appointment
             throw new \Exception('The appointment is already completed');
         }
         $this->databaseRecord->cancel();
+        AppointmentCanceled::dispatch($this);
 
         return $this;
     }
@@ -113,6 +119,7 @@ class Appointment
             throw new \Exception('The appointment is already canceled');
         }
         $this->databaseRecord->complete();
+        AppointmentCompleted::dispatch($this);
 
         return $this;
     }
@@ -196,6 +203,7 @@ class Appointment
             throw new \Exception('The appointment is already canceled');
         }
         $this->databaseRecord?->update(['starts_at' => $at]);
+        AppointmentRescheduled::dispatch($this);
 
         return $this;
     }

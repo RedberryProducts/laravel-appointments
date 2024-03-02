@@ -53,4 +53,13 @@ class AppointmentFactory extends Factory
             ];
         });
     }
+
+    public function pending(): AppointmentFactory
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'status' => 'pending',
+            ];
+        });
+    }
 }
