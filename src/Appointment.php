@@ -8,6 +8,9 @@ use RedberryProducts\Appointment\Events\AppointmentCanceled;
 use RedberryProducts\Appointment\Events\AppointmentCompleted;
 use RedberryProducts\Appointment\Events\AppointmentRescheduled;
 use RedberryProducts\Appointment\Events\AppointmentScheduled;
+use RedberryProducts\Appointment\Exceptions\AppointmentAlreadyCanceledException;
+use RedberryProducts\Appointment\Exceptions\AppointmentAlreadyCompletedException;
+use RedberryProducts\Appointment\Exceptions\UnavailableAppointmentTimeException;
 use RedberryProducts\Appointment\Models\AppointableTimeSetting;
 use Spatie\OpeningHours\OpeningHours;
 
@@ -62,12 +65,12 @@ class Appointment
 
             $isOpenAt = $this->workingHours->isOpenAt($at);
             if (! $isOpenAt) {
-                throw new \Exception('The appointable is not available at the given time');
+                throw new UnavailableAppointmentTimeException();
             }
         }
         $this->at = $at;
         $this->title = $title;
-        $this->save();
+        $this->create();
         AppointmentScheduled::dispatch($this);
 
         return $this;
@@ -86,7 +89,16 @@ class Appointment
         return $this;
     }
 
-    private function save(): void
+    public function updateWorkingHours(array $openingHours): static
+    {
+        $appointableTimeSetting = $this->appointable->timeSetting;
+        $appointableTimeSetting->update(['opening_hours' => $openingHours]);
+        $this->workingHours = OpeningHours::create($appointableTimeSetting->opening_hours);
+
+        return $this;
+    }
+
+    private function create(): void
     {
         $appointment = new Models\Appointment([
             'starts_at' => $this->at,
@@ -99,10 +111,13 @@ class Appointment
         $this->databaseRecord = $appointment;
     }
 
+    /**
+     * @throws AppointmentAlreadyCompletedException
+     */
     public function cancel(): static
     {
         if ($this->status() === Status::COMPLETED->value) {
-            throw new \Exception('The appointment is already completed');
+            throw new AppointmentAlreadyCompletedException();
         }
         $this->databaseRecord->cancel();
         AppointmentCanceled::dispatch($this);
@@ -111,12 +126,12 @@ class Appointment
     }
 
     /**
-     * @throws \Exception
+     * @throws AppointmentAlreadyCanceledException
      */
     public function complete(): static
     {
         if ($this->status() === Status::CANCELED->value) {
-            throw new \Exception('The appointment is already canceled');
+            throw new AppointmentAlreadyCanceledException();
         }
         $this->databaseRecord->complete();
         AppointmentCompleted::dispatch($this);
@@ -193,14 +208,15 @@ class Appointment
     }
 
     /**
-     * @throws \Exception
+     * @throws AppointmentAlreadyCompletedException
+     * @throws AppointmentAlreadyCanceledException
      */
     public function reschedule(\DateTime $at): static
     {
         if ($this->status() === Status::COMPLETED->value) {
-            throw new \Exception('The appointment is already completed');
+            throw new AppointmentAlreadyCompletedException();
         } elseif ($this->status() === Status::CANCELED->value) {
-            throw new \Exception('The appointment is already canceled');
+            throw new AppointmentAlreadyCanceledException();
         }
         $this->databaseRecord?->update(['starts_at' => $at]);
         AppointmentRescheduled::dispatch($this);

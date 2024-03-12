@@ -26,6 +26,11 @@ trait HasAppointments
         AppointmentFacade::with($this)->setWorkingHours($openingHours);
     }
 
+    public function updateWorkingHours(array $openingHours): void
+    {
+        AppointmentFacade::with($this)->updateWorkingHours($openingHours);
+    }
+
     public function workingHours(): ?OpeningHours
     {
         return AppointmentFacade::with($this)->workingHours();
