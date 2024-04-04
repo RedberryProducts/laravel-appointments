@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Carbon;
+use RedberryProducts\Appointment\Exceptions\AppointmentAlreadyCanceledException;
+use RedberryProducts\Appointment\Exceptions\AppointmentAlreadyCompletedException;
+use RedberryProducts\Appointment\Exceptions\UnavailableAppointmentTimeException;
 use RedberryProducts\Appointment\Facades\Appointment;
 use RedberryProducts\Appointment\Tests\Models\User;
 use Spatie\OpeningHours\OpeningHours;
@@ -113,7 +116,7 @@ describe('Test package functionalities using facade', function () {
             at: Carbon::make('2024-04-08 15:00:00')->toDateTime(),
             title: 'Consultation with Dr. John Doe'
         );
-    })->throws(\Exception::class, 'The appointable is not available at the given time');
+    })->throws(UnavailableAppointmentTimeException::class, 'The time slot is unavailable or outside of working hours');
 
     it('can cancel an appointment', function () {
         $appointment = $this->patient->scheduleAppointment(
@@ -177,7 +180,7 @@ describe('Test package functionalities using facade', function () {
             ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
 
         Appointment::findSchedule($appointment->databaseRecord()->id)->complete();
-    })->throws(\Exception::class, 'The appointment is already canceled');
+    })->throws(AppointmentAlreadyCanceledException::class, 'The appointment has already been canceled');
 
     it('can not cancel an appointment that is already completed', function () {
         $appointment = Appointment::with($this->doctor)
@@ -189,7 +192,7 @@ describe('Test package functionalities using facade', function () {
             ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
 
         Appointment::findSchedule($appointment->databaseRecord()->id)->cancel();
-    })->throws(\Exception::class, 'The appointment is already completed');
+    })->throws(AppointmentAlreadyCompletedException::class, 'The appointment has already been completed');
 
     it('can reschedule an appointment', function () {
         $appointment = Appointment::with($this->doctor)
@@ -211,7 +214,7 @@ describe('Test package functionalities using facade', function () {
             ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::COMPLETED->value);
 
         Appointment::findSchedule($appointment->databaseRecord()->id)->reschedule(Carbon::make('2024-04-08 13:00:00')->toDateTime());
-    })->throws(\Exception::class, 'The appointment is already completed');
+    })->throws(AppointmentAlreadyCompletedException::class, 'The appointment has already been completed');
 
     it('can not reschedule an appointment that is already canceled', function () {
         $appointment = Appointment::with($this->doctor)
@@ -223,5 +226,5 @@ describe('Test package functionalities using facade', function () {
             ->and($appointment->databaseRecord()->status)->toBe(\RedberryProducts\Appointment\Enums\Status::CANCELED->value);
 
         Appointment::findSchedule($appointment->databaseRecord()->id)->reschedule(Carbon::make('2024-04-08 13:00:00')->toDateTime());
-    })->throws(\Exception::class, 'The appointment is already canceled');
+    })->throws(AppointmentAlreadyCanceledException::class, 'The appointment has already been canceled');
 });

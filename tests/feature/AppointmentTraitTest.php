@@ -63,7 +63,7 @@ describe('Test package functionalities using model traits', function () {
         expect($this->doctor->timeSetting)->toBeInstanceOf(AppointableTimeSetting::class)
             ->and($this->doctor->timesetting->opening_hours)->toBeArray();
     });
-    it('can use get working hours of appointable', function () {
+    it('can get working hours of appointable', function () {
         $this->doctor->setWorkingHours(
             [
                 'monday' => ['09:00-12:00'],
@@ -79,6 +79,37 @@ describe('Test package functionalities using model traits', function () {
 
         expect($this->doctor->workingHours())->toBeInstanceOf(OpeningHours::class)
             ->and($this->doctor->workingHours()->forDay('monday'))->toBeInstanceOf(OpeningHoursForDay::class);
+    });
+
+    it('can update working hours of appointable', function () {
+
+        $this->doctor->setWorkingHours(
+            [
+                'monday' => ['09:00-12:00'],
+                'tuesday' => ['09:00-12:00', '13:00-18:00'],
+                'wednesday' => ['09:00-12:00'],
+                'thursday' => ['09:00-12:00', '13:00-18:00'],
+                'friday' => ['09:00-12:00', '13:00-20:00'],
+                'saturday' => ['09:00-12:00', '13:00-16:00'],
+                'sunday' => [],
+                'exceptions' => [],
+            ]
+        );
+
+        $this->doctor->updateWorkingHours([
+            'monday' => ['12:00-14:00'],
+            'tuesday' => ['09:00-12:00', '13:00-18:00'],
+            'wednesday' => ['09:00-12:00'],
+            'thursday' => ['09:00-12:00', '13:00-18:00'],
+            'friday' => ['09:00-12:00', '13:00-20:00'],
+            'saturday' => ['09:00-12:00', '13:00-16:00'],
+            'sunday' => [],
+            'exceptions' => [],
+        ]);
+
+        expect($this->doctor->workingHours())->toBeInstanceOf(OpeningHours::class)
+            ->and($this->doctor->workingHours()->forDay('monday'))->toBeInstanceOf(OpeningHoursForDay::class)
+            ->and($this->doctor->workingHours()->forDay('monday')[0]->start()->format('H:i'))->toBe('12:00');
     });
 
     it('can find and cancel an appointment using trait', function () {
