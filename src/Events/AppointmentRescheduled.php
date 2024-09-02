@@ -14,6 +14,5 @@ class AppointmentRescheduled extends Event
 
     public function __construct(
         public Appointment $appointment
-    ) {
-    }
+    ) {}
 }
