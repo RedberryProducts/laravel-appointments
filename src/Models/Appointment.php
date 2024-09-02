@@ -5,6 +5,7 @@ namespace RedberryProducts\Appointment\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use RedberryProducts\Appointment\Enums\Status;
 
@@ -54,5 +55,20 @@ class Appointment extends Model
     public function complete(): void
     {
         $this->update(['status' => Status::COMPLETED->value]);
+    }
+
+    public function scopePending(Builder $builder): Builder
+    {
+        return $builder->where('status', Status::PENDING->value);
+    }
+
+    public function scopeCanceled(Builder $builder): Builder
+    {
+        return $builder->where('status', Status::CANCELED->value);
+    }
+
+    public function scopeCompleted(Builder $builder): Builder
+    {
+        return $builder->where('status', Status::COMPLETED->value);
     }
 }
