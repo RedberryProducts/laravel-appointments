@@ -6,7 +6,7 @@ use RedberryProducts\Appointment\Tests\Models\User;
 beforeEach(function () {
     $this->doctor = User::factory()->create();
     $this->patient = User::factory()->create();
-    $this->appointment = new Appointment();
+    $this->appointment = new Appointment;
 });
 
 it('for and with methods returns instance of static', function () {

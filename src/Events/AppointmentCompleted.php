@@ -14,6 +14,5 @@ class AppointmentCompleted extends Event
 
     public function __construct(
         public Appointment $appointment
-    ) {
-    }
+    ) {}
 }

@@ -18,7 +18,7 @@ describe('Test package functionalities using facade', function () {
 
     it('can schedule a appointment', function () {
         $at = Carbon::now()->addHour()->toDateTime();
-        $appointment = \RedberryProducts\Appointment\Facades\Appointment::with($this->doctor)
+        $appointment = Appointment::with($this->doctor)
             ->for($this->patient)
             ->schedule($at, 'Consultation with Dr. John Doe');
 
@@ -31,7 +31,7 @@ describe('Test package functionalities using facade', function () {
 
     it('can schedule an appointment without appointable', function () {
         $at = Carbon::now()->addHour()->toDateTime();
-        $appointment = \RedberryProducts\Appointment\Facades\Appointment::for($this->patient)
+        $appointment = Appointment::for($this->patient)
             ->schedule($at, 'Appointment without appointable');
 
         expect($appointment)->toBeInstanceOf(\RedberryProducts\Appointment\Appointment::class)
@@ -227,4 +227,30 @@ describe('Test package functionalities using facade', function () {
 
         Appointment::findSchedule($appointment->databaseRecord()->id)->reschedule(Carbon::make('2024-04-08 13:00:00')->toDateTime());
     })->throws(AppointmentAlreadyCanceledException::class, 'The appointment has already been canceled');
+
+    it('can get booked time slots for appointables', function () {
+        $date = Carbon::make('2024-08-28 12:00:00')->toDateTime();
+        Appointment::with($this->doctor)
+            ->setWorkingHours([
+                'wednesday' => ['09:00-11:00', '12:00-14:00', '15:00-17:00'],
+            ])
+            ->for($this->patient)
+            ->schedule($date, 'Consultation with Dr. John Doe');
+
+        expect($this->doctor->getBookedTimeSlots($date))->toBeInstanceOf(OpeningHoursForDay::class)
+            ->and($this->doctor->getBookedTimeSlots($date)->count())->toBe(1);
+    });
+
+    it('can get free time slots for appointables', function () {
+        $date = Carbon::make('2024-08-28 12:00:00')->toDateTime();
+        Appointment::with($this->doctor)
+            ->setWorkingHours([
+                'wednesday' => ['09:00-11:00', '12:00-14:00', '15:00-17:00'],
+            ])
+            ->for($this->patient)
+            ->schedule($date, 'Consultation with Dr. John Doe');
+
+        expect($this->doctor->getBookedTimeSlots($date))->toBeInstanceOf(OpeningHoursForDay::class)
+            ->and($this->doctor->getFreeTimeSlots($date)->count())->toBe(2);
+    });
 });
