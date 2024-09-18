@@ -232,7 +232,7 @@ describe('Test package functionalities using facade', function () {
         $date = Carbon::make('2024-08-28 12:00:00')->toDateTime();
         Appointment::with($this->doctor)
             ->setWorkingHours([
-                'wednesday' => ['09:00-11:00', '12:00-14:00', '15:00-17:00']
+                'wednesday' => ['09:00-11:00', '12:00-14:00', '15:00-17:00'],
             ])
             ->for($this->patient)
             ->schedule($date, 'Consultation with Dr. John Doe');
@@ -245,7 +245,7 @@ describe('Test package functionalities using facade', function () {
         $date = Carbon::make('2024-08-28 12:00:00')->toDateTime();
         Appointment::with($this->doctor)
             ->setWorkingHours([
-                'wednesday' => ['09:00-11:00', '12:00-14:00', '15:00-17:00']
+                'wednesday' => ['09:00-11:00', '12:00-14:00', '15:00-17:00'],
             ])
             ->for($this->patient)
             ->schedule($date, 'Consultation with Dr. John Doe');

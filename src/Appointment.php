@@ -65,7 +65,7 @@ class Appointment
 
             $isOpenAt = $this->workingHours->isOpenAt($at);
             if (! $isOpenAt) {
-                throw new UnavailableAppointmentTimeException();
+                throw new UnavailableAppointmentTimeException;
             }
         }
         $this->at = $at;
@@ -117,7 +117,7 @@ class Appointment
     public function cancel(): static
     {
         if ($this->status() === Status::COMPLETED->value) {
-            throw new AppointmentAlreadyCompletedException();
+            throw new AppointmentAlreadyCompletedException;
         }
         $this->databaseRecord->cancel();
         AppointmentCanceled::dispatch($this);
@@ -131,7 +131,7 @@ class Appointment
     public function complete(): static
     {
         if ($this->status() === Status::CANCELED->value) {
-            throw new AppointmentAlreadyCanceledException();
+            throw new AppointmentAlreadyCanceledException;
         }
         $this->databaseRecord->complete();
         AppointmentCompleted::dispatch($this);
@@ -214,11 +214,11 @@ class Appointment
     public function reschedule(\DateTime $at): static
     {
         if ($this->status() === Status::COMPLETED->value) {
-            throw new AppointmentAlreadyCompletedException();
+            throw new AppointmentAlreadyCompletedException;
         }
 
         if ($this->status() === Status::CANCELED->value) {
-            throw new AppointmentAlreadyCanceledException();
+            throw new AppointmentAlreadyCanceledException;
         }
 
         $this->databaseRecord?->update(['starts_at' => $at]);

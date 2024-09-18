@@ -42,19 +42,19 @@ trait HasAppointments
     {
         return $this->appointments()
             ->pending()
-            ->where('starts_at', 'like', $date->format('Y-m-d') . '%')
+            ->where('starts_at', 'like', $date->format('Y-m-d').'%')
             ->get();
     }
 
     public function getBookedTimeSlots(\DateTime $date): OpeningHoursForDay
     {
         $bookedTimes = $this->getBookedAppointments($date)->pluck('starts_at')
-            ->map(fn($date) => $date->format('H:i'));
+            ->map(fn ($date) => $date->format('H:i'));
 
         $workingHours = $this->workingHours()?->forDate($date);
 
         foreach ($workingHours->getIterator() as $offset => $openingHour) {
-            if (!$bookedTimes->contains($openingHour->start()->format('H:i'))) {
+            if (! $bookedTimes->contains($openingHour->start()->format('H:i'))) {
                 $workingHours->offsetUnset($offset);
             }
         }
@@ -65,7 +65,7 @@ trait HasAppointments
     public function getFreeTimeSlots(\DateTime $date): OpeningHoursForDay
     {
         $bookedTimes = $this->getBookedAppointments($date)->pluck('starts_at')
-            ->map(fn($date) => $date->format('H:i'));
+            ->map(fn ($date) => $date->format('H:i'));
 
         $workingHours = $this->workingHours()?->forDate($date);
 
