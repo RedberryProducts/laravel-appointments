@@ -215,9 +215,12 @@ class Appointment
     {
         if ($this->status() === Status::COMPLETED->value) {
             throw new AppointmentAlreadyCompletedException();
-        } elseif ($this->status() === Status::CANCELED->value) {
+        }
+
+        if ($this->status() === Status::CANCELED->value) {
             throw new AppointmentAlreadyCanceledException();
         }
+
         $this->databaseRecord?->update(['starts_at' => $at]);
         AppointmentRescheduled::dispatch($this);
 

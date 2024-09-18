@@ -3,7 +3,6 @@
 namespace RedberryProducts\Appointment;
 
 use Illuminate\Support\Facades\Event;
-use RedberryProducts\Appointment\Commands\AppointmentCommand;
 use RedberryProducts\Appointment\Events\AppointmentCanceled;
 use RedberryProducts\Appointment\Events\AppointmentCompleted;
 use RedberryProducts\Appointment\Events\AppointmentRescheduled;
@@ -57,7 +56,6 @@ class AppointmentServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_appointments_table')
-            ->hasMigration('create_appointable_time_settings_table')
-            ->hasCommand(AppointmentCommand::class);
+            ->hasMigration('create_appointable_time_settings_table');
     }
 }
